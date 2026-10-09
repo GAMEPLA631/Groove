@@ -1,0 +1,2741 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GrooveVortex — Cyberpunk Neon Audio Visualizer Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-base: #06070a;
+      --bg-panel: rgba(12, 14, 24, 0.75);
+      --bg-panel-solid: #0d101a;
+      --bg-card: rgba(22, 27, 44, 0.6);
+      --border-color: rgba(0, 240, 255, 0.18);
+      --border-focus: rgba(255, 0, 127, 0.6);
+      --primary: #00f0ff;
+      --primary-glow: rgba(0, 240, 255, 0.4);
+      --secondary: #ff007f;
+      --secondary-glow: rgba(255, 0, 127, 0.4);
+      --accent: #9d4edd;
+      --text-main: #f0f4fc;
+      --text-muted: #7e8b9f;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --shadow-neon: 0 0 15px rgba(0, 240, 255, 0.3), 0 0 30px rgba(255, 0, 127, 0.15);
+      --font-display: 'Orbitron', sans-serif;
+      --font-tech: 'Rajdhani', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Ambient Background Glow */
+    .ambient-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 15%, rgba(0, 240, 255, 0.08) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 85%, rgba(255, 0, 127, 0.08) 0%, transparent 50%),
+                  radial-gradient(circle at 50% 50%, rgba(157, 78, 221, 0.04) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* TOP HEADER */
+    header {
+      position: relative;
+      z-index: 10;
+      height: 54px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: 2px;
+      color: #fff;
+      text-shadow: 0 0 10px var(--primary);
+    }
+    .brand span { color: var(--secondary); }
+    .brand-badge {
+      font-size: 0.6rem;
+      padding: 2px 6px;
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid var(--primary);
+      border-radius: 4px;
+      color: var(--primary);
+      font-family: var(--font-tech);
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* BUTTONS */
+    .btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-tech);
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn:hover {
+      background: rgba(0, 240, 255, 0.15);
+      border-color: var(--primary);
+      box-shadow: 0 0 10px var(--primary-glow);
+      color: #fff;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.25), rgba(255, 0, 127, 0.25));
+      border-color: var(--primary);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: #000;
+      font-weight: 700;
+      box-shadow: var(--shadow-neon);
+    }
+    .btn-danger {
+      border-color: rgba(255, 50, 50, 0.4);
+      background: rgba(255, 50, 50, 0.1);
+    }
+    .btn-danger:hover {
+      background: rgba(255, 50, 50, 0.8);
+      border-color: #ff3333;
+      color: #fff;
+    }
+    .btn-icon {
+      padding: 7px 10px;
+    }
+
+    /* WORKSPACE BODY */
+    .workspace {
+      position: relative;
+      z-index: 5;
+      flex: 1;
+      display: grid;
+      grid-template-columns: 320px 1fr 340px;
+      overflow: hidden;
+    }
+
+    /* SIDE PANELS */
+    .panel {
+      background: var(--bg-panel);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .panel-right {
+      border-right: none;
+      border-left: 1px solid var(--border-color);
+    }
+
+    .panel-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(8, 10, 18, 0.8);
+    }
+    .panel-tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px 4px;
+      font-family: var(--font-tech);
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .panel-tab:hover {
+      color: var(--text-main);
+      background: rgba(255,255,255,0.02);
+    }
+    .panel-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: rgba(0, 240, 255, 0.05);
+      text-shadow: 0 0 8px var(--primary-glow);
+    }
+
+    .panel-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .panel-content::-webkit-scrollbar {
+      width: 5px;
+    }
+    .panel-content::-webkit-scrollbar-thumb {
+      background: rgba(0, 240, 255, 0.2);
+      border-radius: 4px;
+    }
+
+    /* FORM CONTROLS & SECTIONS */
+    .control-group {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .group-title {
+      font-family: var(--font-tech);
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .row label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .form-control {
+      background: rgba(8, 10, 16, 0.9);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      outline: none;
+      font-family: var(--font-body);
+      transition: all 0.2s;
+    }
+    .form-control:focus {
+      border-color: var(--secondary);
+      box-shadow: 0 0 8px var(--secondary-glow);
+    }
+    select.form-control {
+      cursor: pointer;
+    }
+
+    /* RANGE SLIDERS */
+    .slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .slider-label span:last-child {
+      color: var(--primary);
+      font-family: var(--font-tech);
+      font-weight: 600;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.12);
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 8px var(--primary);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    /* TOGGLES */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+    .toggle-wrap span {
+      font-size: 0.82rem;
+      color: var(--text-main);
+    }
+    .toggle {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      transition: 0.25s;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      transition: 0.25s;
+    }
+    input[type="checkbox"] {
+      display: none;
+    }
+    input[type="checkbox"]:checked + .toggle {
+      background: var(--primary);
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+    input[type="checkbox"]:checked + .toggle::after {
+      transform: translateX(16px);
+      background: #06070a;
+    }
+
+    /* PRESETS GRID */
+    .presets-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .preset-btn {
+      background: rgba(14, 18, 28, 0.8);
+      border: 1px solid rgba(0, 240, 255, 0.15);
+      border-radius: var(--radius-sm);
+      padding: 10px 8px;
+      text-align: center;
+      font-family: var(--font-tech);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .preset-btn:hover {
+      background: rgba(0, 240, 255, 0.12);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 240, 255, 0.2);
+    }
+
+    /* CENTER VIEWPORT (CANVAS PREVIEW) */
+    .viewport {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #020306;
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .canvas-container {
+      position: relative;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.9), 0 0 20px rgba(0, 240, 255, 0.15);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      border-radius: 8px;
+      overflow: hidden;
+      max-width: 100%;
+      max-height: 100%;
+      background: #000;
+      transition: border-color 0.3s;
+    }
+    .canvas-container.beat-pulse {
+      border-color: var(--secondary);
+      box-shadow: 0 0 60px rgba(255, 0, 127, 0.3), 0 0 20px var(--primary-glow);
+    }
+
+    #visualizerCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .viewport-overlay {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      display: flex;
+      gap: 10px;
+      z-index: 8;
+    }
+    .stat-pill {
+      background: rgba(8, 10, 16, 0.8);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-color);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-family: var(--font-tech);
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 0.5px;
+    }
+
+    .viewport-tools {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      display: flex;
+      gap: 6px;
+      z-index: 8;
+    }
+
+    /* DROP ZONE POPUP / OVERLAY */
+    .drop-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(6, 7, 10, 0.88);
+      backdrop-filter: blur(10px);
+      border: 3px dashed var(--primary);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      color: var(--primary);
+      font-family: var(--font-display);
+      text-shadow: 0 0 20px var(--primary-glow);
+      pointer-events: none;
+    }
+    .drop-overlay.active {
+      display: flex;
+    }
+
+    /* BOTTOM PLAYER & TIMELINE */
+    footer {
+      position: relative;
+      z-index: 10;
+      height: 74px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border-color);
+      display: grid;
+      grid-template-columns: 280px 1fr 280px;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+    }
+
+    .track-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      overflow: hidden;
+    }
+    .track-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 6px;
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-size: 1.2rem;
+      background-size: cover;
+      background-position: center;
+      flex-shrink: 0;
+    }
+    .track-info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .track-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .track-artist {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: var(--font-tech);
+    }
+
+    .player-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .player-buttons {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .btn-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+    .btn-circle.play-btn {
+      width: 44px;
+      height: 44px;
+      background: var(--primary);
+      color: #000;
+      border-color: var(--primary);
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+    .btn-circle.play-btn:hover {
+      background: #fff;
+      transform: scale(1.08);
+    }
+
+    .timeline-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+    .time-text {
+      font-size: 0.72rem;
+      font-family: var(--font-tech);
+      color: var(--text-muted);
+      width: 38px;
+    }
+    .timeline-scrub {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.1);
+      position: relative;
+      cursor: pointer;
+    }
+    .timeline-progress {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      border-radius: 3px;
+      box-shadow: 0 0 8px var(--primary-glow);
+      width: 0%;
+      pointer-events: none;
+    }
+
+    .player-extra {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    .volume-slider {
+      width: 90px;
+    }
+
+    /* TOAST NOTIFICATION */
+    .toast-container {
+      position: fixed;
+      bottom: 88px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 1000;
+      pointer-events: none;
+    }
+    .toast {
+      background: rgba(12, 16, 26, 0.95);
+      border: 1px solid var(--primary);
+      box-shadow: var(--shadow-neon);
+      backdrop-filter: blur(10px);
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-family: var(--font-tech);
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: slideIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes slideIn {
+      from { transform: translateX(50px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* FULLSCREEN OVERRIDE */
+    .fullscreen-mode .workspace {
+      grid-template-columns: 1fr;
+    }
+    .fullscreen-mode .panel,
+    .fullscreen-mode header,
+    .fullscreen-mode footer {
+      display: none !important;
+    }
+    .fullscreen-mode .viewport {
+      padding: 0;
+    }
+    .fullscreen-mode .canvas-container {
+      border: none;
+      border-radius: 0;
+      width: 100vw !important;
+      height: 100vh !important;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1080px) {
+      .workspace { grid-template-columns: 280px 1fr 280px; }
+    }
+    @media (max-width: 860px) {
+      .workspace { grid-template-columns: 1fr; }
+      .panel { display: none; }
+      footer { grid-template-columns: 1fr 1fr; }
+      .player-extra { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-bg"></div>
+
+  <!-- DRAG & DROP OVERLAY -->
+  <div id="dropOverlay" class="drop-overlay">
+    <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+    </svg>
+    <h2>DROP AUDIO, BACKGROUND OR COVER HERE</h2>
+    <p style="font-family: var(--font-tech); font-size: 1.1rem; color: #fff;">Auto-detects MP3, WAV, FLAC, PNG, JPG</p>
+  </div>
+
+  <!-- TOP BAR -->
+  <header>
+    <div class="brand">
+      GROOVE<span>VORTEX</span>
+      <span class="brand-badge">STUDIO PRO v3.5</span>
+    </div>
+
+    <div class="top-actions">
+      <button class="btn" id="btnDemoMusic" title="Play built-in Synthwave synth demo">
+        <span>⚡</span> Demo Synth
+      </button>
+      <label class="btn btn-primary" title="Upload your Audio file">
+        <span>📁</span> Load Audio
+        <input type="file" id="audioFileInput" accept="audio/*" style="display:none;" />
+      </label>
+      <button class="btn" id="btnSaveProject" title="Save configuration to local browser storage">
+        <span>💾</span> Save
+      </button>
+      <button class="btn" id="btnExportVideo" title="Record and export high-res WebM video">
+        <span>🎬</span> Export Video
+      </button>
+      <button class="btn btn-icon" id="btnToggleFullscreen" title="Toggle Fullscreen Preview (Hotkey: F)">
+        <span>⛶</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <main class="workspace">
+    
+    <!-- LEFT PANEL: MODES & MEDIA -->
+    <aside class="panel">
+      <div class="panel-tabs">
+        <div class="panel-tab active" data-tab="tab-modes">VISUAL MODES</div>
+        <div class="panel-tab" data-tab="tab-media">MEDIA ASSETS</div>
+        <div class="panel-tab" data-tab="tab-presets">PRESETS</div>
+      </div>
+
+      <div class="panel-content" id="tab-modes">
+        <div class="control-group">
+          <div class="group-title">Visualizer Style</div>
+          <select id="selVisualMode" class="form-control">
+            <option value="circular-spectrum">1. Circular Spectrum (Hero)</option>
+            <option value="circular-eq">2. Circular Equalizer</option>
+            <option value="radial-bars">3. Radial Bars</option>
+            <option value="frequency-bars">4. Frequency Bars (Bottom)</option>
+            <option value="waveform">5. Waveform Ribbon</option>
+            <option value="oscilloscope">6. Oscilloscope Neon Trace</option>
+            <option value="neon-rings">7. Neon Resonant Rings</option>
+            <option value="tunnel">8. Hyperspace Cyber Tunnel</option>
+            <option value="mirror-spectrum">9. Mirror Spectrum (Dual)</option>
+            <option value="dual-spectrum">10. Dual Split Spectrum</option>
+            <option value="spiral-spectrum">11. Golden Spiral Spectrum</option>
+            <option value="particles-mesh">12. Particle Constellation Mesh</option>
+            <option value="galaxy">13. Galaxy Orbital Visualizer</option>
+            <option value="synthwave-grid">14. 3D Synthwave Grid Horizon</option>
+            <option value="3d-eq">15. 3D Equalizer Pillars</option>
+            <option value="energy-pulse">16. Sonic Energy Pulse Core</option>
+            <option value="cyberpunk-hud">17. Cyberpunk Tactical HUD</option>
+            <option value="minimal-spectrum">18. Minimal Dual Line</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <div class="group-title">Layout & Aspect Ratio</div>
+          <select id="selAspectRatio" class="form-control">
+            <option value="16:9">YouTube Standard (16:9 — 1920x1080)</option>
+            <option value="9:16">Shorts / TikTok (9:16 — 1080x1920)</option>
+            <option value="1:1">Instagram Post (1:1 — 1080x1080)</option>
+            <option value="4:3">Retro Box (4:3 — 1440x1080)</option>
+          </select>
+        </div>
+
+        <!-- AUDIO DYNAMIC REACTION & SCREEN SHAKE -->
+        <div class="control-group">
+          <div class="group-title">Audio Reaction & Screen Shake</div>
+          
+          <label class="toggle-wrap">
+            <span style="font-weight:700; color:var(--primary);">📳 Screen Shake On Beat (Trasenie)</span>
+            <input type="checkbox" id="chkScreenShake" checked>
+            <div class="toggle"></div>
+          </label>
+          
+          <div class="slider-row">
+            <div class="slider-label"><span>Shake Intensity (Sila otrasu)</span><span id="lblShakeIntensity">18px</span></div>
+            <input type="range" id="rngShakeIntensity" min="0" max="60" step="1" value="18">
+          </div>
+
+          <div class="slider-row">
+            <div class="slider-label"><span>Beat Trigger Sensitivity</span><span id="lblBeatSens">1.2x</span></div>
+            <input type="range" id="rngBeatSens" min="0.5" max="2.5" step="0.05" value="1.2">
+          </div>
+
+          <div class="slider-row">
+            <div class="slider-label"><span>Bass Sensitivity (Reakcia basov)</span><span id="lblBassSens">1.6x</span></div>
+            <input type="range" id="rngBassSens" min="0.5" max="3.5" step="0.1" value="1.6">
+          </div>
+
+          <div class="slider-row">
+            <div class="slider-label"><span>Mids & Highs Reactivity</span><span id="lblMidHighSens">1.3x</span></div>
+            <input type="range" id="rngMidHighSens" min="0.5" max="3.0" step="0.1" value="1.3">
+          </div>
+
+          <div class="slider-row">
+            <div class="slider-label"><span>Visual Scale</span><span id="lblVisScale">1.2x</span></div>
+            <input type="range" id="rngVisScale" min="0.5" max="2.5" step="0.05" value="1.2">
+          </div>
+
+          <div class="slider-row">
+            <div class="slider-label"><span>FFT Smoothing</span><span id="lblSmoothing">0.78</span></div>
+            <input type="range" id="rngSmoothing" min="0.4" max="0.95" step="0.02" value="0.78">
+          </div>
+
+          <div class="slider-row">
+            <div class="slider-label"><span>Radial Inner Radius</span><span id="lblRadius">130px</span></div>
+            <input type="range" id="rngRadius" min="40" max="260" step="2" value="130">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <div class="group-title">3D Horizon & Grid Floor</div>
+          <label class="toggle-wrap">
+            <span>Enable 3D Synthwave Grid</span>
+            <input type="checkbox" id="chkGrid3D" checked>
+            <div class="toggle"></div>
+          </label>
+          <div class="slider-row">
+            <div class="slider-label"><span>Grid Perspective Pitch</span><span id="lblGridPitch">65°</span></div>
+            <input type="range" id="rngGridPitch" min="30" max="85" step="1" value="65">
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Grid Travel Speed</span><span id="lblGridSpeed">1.0x</span></div>
+            <input type="range" id="rngGridSpeed" min="0" max="3.0" step="0.1" value="1.0">
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-content" id="tab-media" style="display:none;">
+        <div class="control-group">
+          <div class="group-title">Background Layer</div>
+          <label class="btn" style="width:100%; justify-content:center;">
+            <span>🖼️</span> Upload Background Image
+            <input type="file" id="bgFileInput" accept="image/*" style="display:none;" />
+          </label>
+          <div class="slider-row">
+            <div class="slider-label"><span>Background Blur</span><span id="lblBgBlur">3px</span></div>
+            <input type="range" id="rngBgBlur" min="0" max="25" step="1" value="3">
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Dim / Darken</span><span id="lblBgDim">50%</span></div>
+            <input type="range" id="rngBgDim" min="0" max="100" step="1" value="50">
+          </div>
+          <label class="toggle-wrap">
+            <span>Dynamic Beat Zoom (Parallax)</span>
+            <input type="checkbox" id="chkBgZoom" checked>
+            <div class="toggle"></div>
+          </label>
+        </div>
+
+        <div class="control-group">
+          <div class="group-title">Center Album Cover</div>
+          <label class="btn" style="width:100%; justify-content:center;">
+            <span>💿</span> Upload Album Art
+            <input type="file" id="coverFileInput" accept="image/*" style="display:none;" />
+          </label>
+          <label class="toggle-wrap">
+            <span>Show Center Cover</span>
+            <input type="checkbox" id="chkShowCover" checked>
+            <div class="toggle"></div>
+          </label>
+          <div class="row">
+            <label>Cover Shape</label>
+            <select id="selCoverShape" class="form-control" style="width:120px;">
+              <option value="circle">Circular</option>
+              <option value="square">Square</option>
+              <option value="hexagon">Hexagon</option>
+            </select>
+          </div>
+          <label class="toggle-wrap">
+            <span>Pulsate with Bass</span>
+            <input type="checkbox" id="chkCoverPulse" checked>
+            <div class="toggle"></div>
+          </label>
+        </div>
+
+        <div class="control-group">
+          <div class="group-title">Custom Logo / Watermark</div>
+          <label class="btn" style="width:100%; justify-content:center;">
+            <span>✨</span> Upload Transparent PNG Logo
+            <input type="file" id="logoFileInput" accept="image/*" style="display:none;" />
+          </label>
+          <div class="row">
+            <label>Position</label>
+            <select id="selLogoPos" class="form-control" style="width:130px;">
+              <option value="top-left">Top Left</option>
+              <option value="top-right">Top Right</option>
+              <option value="bottom-left">Bottom Left</option>
+              <option value="bottom-right">Bottom Right</option>
+              <option value="center-bottom">Center Bottom</option>
+            </select>
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Logo Opacity</span><span id="lblLogoOpacity">85%</span></div>
+            <input type="range" id="rngLogoOpacity" min="10" max="100" step="5" value="85">
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-content" id="tab-presets" style="display:none;">
+        <div class="group-title">Instant Cyberpunk Presets</div>
+        <div class="presets-grid">
+          <button class="preset-btn" data-preset="cyberpunk">⚡ Cyberpunk 2077</button>
+          <button class="preset-btn" data-preset="synthwave">🌅 Synthwave 80s</button>
+          <button class="preset-btn" data-preset="matrix">🟢 Cyan Matrix</button>
+          <button class="preset-btn" data-preset="rave">🟣 Magenta Rave</button>
+          <button class="preset-btn" data-preset="phonk">💀 Phonk Drift</button>
+          <button class="preset-btn" data-preset="techno">⚡ Berlin Techno</button>
+          <button class="preset-btn" data-preset="edm">🎉 Festival EDM</button>
+          <button class="preset-btn" data-preset="galaxy">🌌 Galaxy Deep Space</button>
+          <button class="preset-btn" data-preset="minimal">⚪ Pure Minimal</button>
+          <button class="preset-btn" data-preset="toxic">☣️ Toxic Acid</button>
+          <button class="preset-btn" data-preset="solar">☀️ Solar Flare</button>
+          <button class="preset-btn" data-preset="blood">🩸 Blood Red Moon</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER PREVIEW VIEWPORT -->
+    <section class="viewport" id="viewportArea">
+      <div class="viewport-overlay">
+        <div class="stat-pill" id="fpsCounter">FPS: 60</div>
+        <div class="stat-pill" id="audioStatePill">ENGINE: READY</div>
+        <div class="stat-pill" id="resPill">1920 × 1080</div>
+      </div>
+
+      <div class="viewport-tools">
+        <button class="btn btn-icon" id="btnFitScreen" title="Reset Viewport Scale">🔍 Fit</button>
+      </div>
+
+      <div class="canvas-container" id="canvasContainer">
+        <canvas id="visualizerCanvas" width="1920" height="1080"></canvas>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: COLORS, TEXT & SHADERS -->
+    <aside class="panel panel-right">
+      <div class="panel-tabs">
+        <div class="panel-tab active" data-tab="tab-colors">COLORS & FX</div>
+        <div class="panel-tab" data-tab="tab-text">TYPOGRAPHY</div>
+        <div class="panel-tab" data-tab="tab-particles">PARTICLES</div>
+      </div>
+
+      <div class="panel-content" id="tab-colors">
+        <div class="control-group">
+          <div class="group-title">Neon Color Palette</div>
+          <div class="row">
+            <label>Primary (Cyan / Highs)</label>
+            <input type="color" id="colPrimary" value="#00f0ff" class="form-control" style="width:48px; height:32px; padding:2px;">
+          </div>
+          <div class="row">
+            <label>Secondary (Magenta / Bass)</label>
+            <input type="color" id="colSecondary" value="#ff007f" class="form-control" style="width:48px; height:32px; padding:2px;">
+          </div>
+          <div class="row">
+            <label>Accent / Outer Rings</label>
+            <input type="color" id="colAccent" value="#9d4edd" class="form-control" style="width:48px; height:32px; padding:2px;">
+          </div>
+          <div class="row">
+            <label>Floor Grid Color</label>
+            <input type="color" id="colGrid" value="#00f0ff" class="form-control" style="width:48px; height:32px; padding:2px;">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <div class="group-title">Neon Glow & Bloom Shader</div>
+          <label class="toggle-wrap">
+            <span>Hyper Neon Bloom</span>
+            <input type="checkbox" id="chkGlow" checked>
+            <div class="toggle"></div>
+          </label>
+          <div class="slider-row">
+            <div class="slider-label"><span>Glow Blur Intensity</span><span id="lblGlowBlur">25px</span></div>
+            <input type="range" id="rngGlowBlur" min="5" max="50" step="1" value="25">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <div class="group-title">Retro Post-Processing FX</div>
+          <label class="toggle-wrap">
+            <span>RGB Chromatic Aberration</span>
+            <input type="checkbox" id="chkChromatic" checked>
+            <div class="toggle"></div>
+          </label>
+          <label class="toggle-wrap">
+            <span>CRT Scanlines</span>
+            <input type="checkbox" id="chkScanlines" checked>
+            <div class="toggle"></div>
+          </label>
+          <label class="toggle-wrap">
+            <span>Film Grain / Noise</span>
+            <input type="checkbox" id="chkFilmGrain" checked>
+            <div class="toggle"></div>
+          </label>
+          <label class="toggle-wrap">
+            <span>Vignette Shadow Edges</span>
+            <input type="checkbox" id="chkVignette" checked>
+            <div class="toggle"></div>
+          </label>
+        </div>
+      </div>
+
+      <div class="panel-content" id="tab-text" style="display:none;">
+        <div class="control-group">
+          <div class="group-title">Track Title & Artist</div>
+          <label class="toggle-wrap">
+            <span>Show Overlay Typography</span>
+            <input type="checkbox" id="chkShowText" checked>
+            <div class="toggle"></div>
+          </label>
+          <div class="slider-row">
+            <label>Track Title</label>
+            <input type="text" id="txtTrackTitle" class="form-control" value="CYBERPUNK OVERDRIVE">
+          </div>
+          <div class="slider-row">
+            <label>Artist Name</label>
+            <input type="text" id="txtTrackArtist" class="form-control" value="GROOVEVORTEX">
+          </div>
+          <div class="row">
+            <label>Typography Font</label>
+            <select id="selTextFont" class="form-control" style="width:130px;">
+              <option value="Orbitron">Orbitron</option>
+              <option value="Rajdhani">Rajdhani</option>
+              <option value="Inter">Inter</option>
+              <option value="Courier New">Retro Monospace</option>
+            </select>
+          </div>
+          <div class="row">
+            <label>Text Position</label>
+            <select id="selTextPos" class="form-control" style="width:130px;">
+              <option value="bottom-center">Bottom Center</option>
+              <option value="top-center">Top Center</option>
+              <option value="center">Inside Center</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <div class="group-title">Branding / Watermark</div>
+          <label class="toggle-wrap">
+            <span>Show Watermark</span>
+            <input type="checkbox" id="chkWatermark" checked>
+            <div class="toggle"></div>
+          </label>
+          <input type="text" id="txtWatermark" class="form-control" value="GROOVEVORTEX PRO AUDIO">
+        </div>
+      </div>
+
+      <div class="panel-content" id="tab-particles" style="display:none;">
+        <div class="control-group">
+          <div class="group-title">Cosmic Particles System</div>
+          <label class="toggle-wrap">
+            <span>Enable Particle Storm</span>
+            <input type="checkbox" id="chkParticles" checked>
+            <div class="toggle"></div>
+          </label>
+          <div class="slider-row">
+            <div class="slider-label"><span>Particle Density</span><span id="lblPartCount">160</span></div>
+            <input type="range" id="rngPartCount" min="20" max="400" step="10" value="160">
+          </div>
+          <div class="slider-row">
+            <div class="slider-label"><span>Particle Speed</span><span id="lblPartSpeed">1.2x</span></div>
+            <input type="range" id="rngPartSpeed" min="0.2" max="3.0" step="0.1" value="1.2">
+          </div>
+          <div class="row">
+            <label>Particle Flow Direction</label>
+            <select id="selPartDir" class="form-control" style="width:120px;">
+              <option value="radial-out">Explode Out</option>
+              <option value="upward">Float Up</option>
+              <option value="hyperspace">Hyperspace (Z)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- BOTTOM CONTROLLER / AUDIO TIMELINE -->
+  <footer>
+    <div class="track-meta">
+      <div class="track-thumb" id="miniThumb">🎵</div>
+      <div class="track-info">
+        <div class="track-title" id="lblPlayerTitle">No audio loaded (Click Demo)</div>
+        <div class="track-artist" id="lblPlayerArtist">Cyberpunk Audio Engine</div>
+      </div>
+    </div>
+
+    <div class="player-center">
+      <div class="player-buttons">
+        <button class="btn btn-circle" id="btnStop" title="Stop">⏹</button>
+        <button class="btn btn-circle play-btn" id="btnPlayPause" title="Play/Pause (Space)">▶</button>
+        <button class="btn btn-circle" id="btnLoop" title="Toggle Loop">🔁</button>
+      </div>
+
+      <div class="timeline-bar">
+        <span class="time-text" id="lblCurrentTime">00:00</span>
+        <div class="timeline-scrub" id="timelineScrub">
+          <div class="timeline-progress" id="timelineProgress"></div>
+        </div>
+        <span class="time-text" id="lblTotalDuration">00:00</span>
+      </div>
+    </div>
+
+    <div class="player-extra">
+      <button class="btn btn-icon" id="btnMute" title="Mute (Hotkey: M)">🔊</button>
+      <input type="range" id="rngVolume" min="0" max="1" step="0.01" value="0.85" class="volume-slider" title="Master Volume">
+    </div>
+  </footer>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- HIDDEN AUDIO ELEMENT -->
+  <audio id="audioElement" crossorigin="anonymous"></audio>
+
+  <script>
+    /**
+     * GROOVEVORTEX CORE STUDIO ENGINE
+     * Complete Self-Contained Web Audio + Canvas Visualizer Application
+     */
+
+    // --- APPLICATION STATE ---
+    const state = {
+      isPlaying: false,
+      isLooping: false,
+      isMuted: false,
+      volume: 0.85,
+      duration: 0,
+      currentTime: 0,
+      visualMode: 'circular-spectrum',
+      aspectRatio: '16:9',
+      
+      // Dynamic Audio & Screen Shake Settings
+      enableScreenShake: true,
+      shakeIntensity: 18,
+      beatSens: 1.2,
+      bassSens: 1.6,
+      midHighSens: 1.3,
+      visScale: 1.2,
+      smoothing: 0.78,
+      innerRadius: 130,
+
+      // Shake active decay state
+      shakeOffsetX: 0,
+      shakeOffsetY: 0,
+      shakeAngle: 0,
+      shakeDecay: 0,
+
+      grid3D: true,
+      gridPitch: 65,
+      gridSpeed: 1.0,
+      bgImage: null,
+      bgBlur: 3,
+      bgDim: 50,
+      bgZoom: true,
+      showCover: true,
+      coverImage: null,
+      coverShape: 'circle',
+      coverPulse: true,
+      logoImage: null,
+      logoPos: 'top-left',
+      logoOpacity: 0.85,
+      primaryColor: '#00f0ff',
+      secondaryColor: '#ff007f',
+      accentColor: '#9d4edd',
+      gridColor: '#00f0ff',
+      glow: true,
+      glowBlur: 25,
+      chromatic: true,
+      scanlines: true,
+      filmGrain: true,
+      vignette: true,
+      showText: true,
+      trackTitle: 'CYBERPUNK OVERDRIVE',
+      trackArtist: 'GROOVEVORTEX',
+      textFont: 'Orbitron',
+      textPos: 'bottom-center',
+      watermark: true,
+      watermarkText: 'GROOVEVORTEX PRO AUDIO',
+      particles: true,
+      particleCount: 160,
+      particleSpeed: 1.2,
+      particleDir: 'radial-out',
+      isRecording: false,
+      mediaRecorder: null,
+      recordedChunks: [],
+      synthInterval: null,
+      isSynthRunning: false
+    };
+
+    // --- DOM REFERENCES ---
+    const canvas = document.getElementById('visualizerCanvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    const canvasContainer = document.getElementById('canvasContainer');
+    const audioEl = document.getElementById('audioElement');
+    const dropOverlay = document.getElementById('dropOverlay');
+    const toastContainer = document.getElementById('toastContainer');
+    const fpsCounter = document.getElementById('fpsCounter');
+    const audioStatePill = document.getElementById('audioStatePill');
+
+    // Controls
+    const btnPlayPause = document.getElementById('btnPlayPause');
+    const btnStop = document.getElementById('btnStop');
+    const btnLoop = document.getElementById('btnLoop');
+    const btnMute = document.getElementById('btnMute');
+    const rngVolume = document.getElementById('rngVolume');
+    const timelineScrub = document.getElementById('timelineScrub');
+    const timelineProgress = document.getElementById('timelineProgress');
+    const lblCurrentTime = document.getElementById('lblCurrentTime');
+    const lblTotalDuration = document.getElementById('lblTotalDuration');
+    const lblPlayerTitle = document.getElementById('lblPlayerTitle');
+    const lblPlayerArtist = document.getElementById('lblPlayerArtist');
+    const miniThumb = document.getElementById('miniThumb');
+
+    // --- WEB AUDIO API GRAPH ---
+    let audioCtx = null;
+    let analyser = null;
+    let sourceNode = null;
+    let gainNode = null;
+    let destStreamNode = null;
+    let dataArray = null;
+    let timeArray = null;
+    const FFT_SIZE = 1024;
+
+    function initAudioContext() {
+      if (audioCtx) return;
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContextClass();
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = FFT_SIZE;
+      analyser.smoothingTimeConstant = state.smoothing;
+
+      gainNode = audioCtx.createGain();
+      gainNode.gain.value = state.volume;
+
+      // Connect HTML5 Audio element
+      sourceNode = audioCtx.createMediaElementSource(audioEl);
+      sourceNode.connect(analyser);
+      analyser.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      // MediaStream node for clean video recording with audio
+      destStreamNode = audioCtx.createMediaStreamDestination();
+      gainNode.connect(destStreamNode);
+
+      dataArray = new Uint8Array(analyser.frequencyBinCount);
+      timeArray = new Uint8Array(analyser.frequencyBinCount);
+
+      audioStatePill.textContent = 'ENGINE: ACTIVE';
+      audioStatePill.style.color = '#00f0ff';
+    }
+
+    // --- TOAST NOTIFICATIONS ---
+    function showToast(message, icon = 'ℹ️') {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+      toastContainer.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+
+    // --- PARTICLE SYSTEM ---
+    class ParticleEngine {
+      constructor() {
+        this.particles = [];
+        this.reset();
+      }
+
+      reset() {
+        this.particles = [];
+        for (let i = 0; i < 400; i++) {
+          this.particles.push({
+            x: Math.random() * 1920,
+            y: Math.random() * 1080,
+            z: Math.random() * 1000,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2,
+            size: Math.random() * 2.5 + 1,
+            color: Math.random() > 0.5 ? state.primaryColor : state.secondaryColor,
+            alpha: Math.random() * 0.7 + 0.3,
+            angle: Math.random() * Math.PI * 2,
+            radius: Math.random() * 600 + 50
+          });
+        }
+      }
+
+      updateAndDraw(ctx, cx, cy, bassNorm, beatKick) {
+        if (!state.particles) return;
+        const count = state.particleCount;
+        const speed = state.particleSpeed * (1 + bassNorm * 1.8);
+
+        ctx.save();
+        for (let i = 0; i < count; i++) {
+          const p = this.particles[i];
+
+          if (state.particleDir === 'radial-out') {
+            p.radius += (2 + speed * 3.5) + (beatKick ? 14 : 0);
+            if (p.radius > 1150) {
+              p.radius = state.innerRadius + Math.random() * 20;
+              p.angle = Math.random() * Math.PI * 2;
+            }
+            p.x = cx + Math.cos(p.angle) * p.radius;
+            p.y = cy + Math.sin(p.angle) * p.radius;
+          } else if (state.particleDir === 'hyperspace') {
+            p.z -= 6 * speed + (beatKick ? 22 : 0);
+            if (p.z <= 1) {
+              p.z = 1000;
+              p.x = (Math.random() - 0.5) * 1920;
+              p.y = (Math.random() - 0.5) * 1080;
+            }
+            const k = 400 / p.z;
+            const px = cx + p.x * k;
+            const py = cy + p.y * k;
+            const psize = Math.max(0.5, (1 - p.z / 1000) * 4.5);
+
+            ctx.fillStyle = i % 2 === 0 ? state.primaryColor : state.secondaryColor;
+            ctx.beginPath();
+            ctx.arc(px, py, psize, 0, Math.PI * 2);
+            ctx.fill();
+            continue;
+          } else {
+            // Upward float
+            p.y -= (1.5 * speed) + (beatKick ? 6 : 0);
+            p.x += p.vx * 0.5;
+            if (p.y < 0) {
+              p.y = 1080;
+              p.x = Math.random() * 1920;
+            }
+          }
+
+          ctx.fillStyle = i % 2 === 0 ? state.primaryColor : state.secondaryColor;
+          ctx.globalAlpha = p.alpha * (0.6 + bassNorm * 0.4);
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * (1 + bassNorm * 1.1), 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+
+    const particles = new ParticleEngine();
+
+    // --- 3D SYNTHWAVE GRID ENGINE ---
+    let gridOffset = 0;
+    function draw3DGrid(ctx, w, h, bassNorm) {
+      if (!state.grid3D) return;
+      ctx.save();
+
+      const horizonY = h * 0.58;
+      gridOffset = (gridOffset + 1.2 * state.gridSpeed * (1 + bassNorm * 2.0)) % 40;
+
+      // Glow Horizon line
+      const grad = ctx.createLinearGradient(0, horizonY - 40, 0, horizonY + 2);
+      grad.addColorStop(0, 'transparent');
+      grad.addColorStop(1, state.secondaryColor);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, horizonY - 40, w, 42);
+
+      ctx.strokeStyle = state.gridColor;
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.4 + bassNorm * 0.4;
+
+      // Perspective vertical lines
+      const vanishingX = w / 2;
+      const numLines = 32;
+      for (let i = -numLines; i <= numLines; i++) {
+        const xFloor = vanishingX + i * 70;
+        ctx.beginPath();
+        ctx.moveTo(vanishingX, horizonY);
+        ctx.lineTo(xFloor * 2.5 - vanishingX * 1.5, h);
+        ctx.stroke();
+      }
+
+      // Horizontal lines with logarithmic perspective depth
+      for (let y = 0; y < h - horizonY; y += 1) {
+        const norm = y / (h - horizonY);
+        const mappedY = horizonY + Math.pow(norm, 2.2) * (h - horizonY);
+        if (((mappedY + gridOffset * 2) % 36) < 2) {
+          ctx.beginPath();
+          ctx.moveTo(0, mappedY);
+          ctx.lineTo(w, mappedY);
+          ctx.stroke();
+        }
+      }
+
+      ctx.restore();
+    }
+
+    // --- ADVANCED AUDIO METRICS & BEAT/FREQUENCY DETECTION ---
+    let prevBassAvg = 0;
+
+    function getAudioMetrics() {
+      if (!analyser) {
+        return { bass: 0, subBass: 0, mid: 0, high: 0, level: 0, beatKick: false, beatIntensity: 0 };
+      }
+
+      analyser.getByteFrequencyData(dataArray);
+      analyser.getByteTimeDomainData(timeArray);
+
+      let subBassSum = 0, bassSum = 0, midSum = 0, highSum = 0, totalSum = 0;
+      const binCount = analyser.frequencyBinCount;
+
+      const subBassEnd = Math.floor(binCount * 0.03); // ~20-60 Hz
+      const bassEnd = Math.floor(binCount * 0.12);    // ~60-250 Hz
+      const midEnd = Math.floor(binCount * 0.45);     // ~250-4000 Hz
+
+      for (let i = 0; i < binCount; i++) {
+        const val = dataArray[i];
+        totalSum += val;
+        if (i < subBassEnd) subBassSum += val;
+        else if (i < bassEnd) bassSum += val;
+        else if (i < midEnd) midSum += val;
+        else highSum += val;
+      }
+
+      const rawSub = subBassSum / (subBassEnd * 255);
+      const rawBass = bassSum / ((bassEnd - subBassEnd) * 255);
+      const rawMid = midSum / ((midEnd - bassEnd) * 255);
+      const rawHigh = highSum / ((binCount - midEnd) * 255);
+
+      const bass = Math.min(3.0, (rawSub * 1.4 + rawBass) * state.bassSens);
+      const mid = Math.min(3.0, rawMid * state.midHighSens);
+      const high = Math.min(3.0, rawHigh * state.midHighSens);
+      const level = Math.min(3.0, (totalSum / (binCount * 255)) * state.visScale);
+
+      // Transient Beat Kick Detection
+      const currentBassAvg = (rawSub * 1.5 + rawBass);
+      const bassDelta = currentBassAvg - prevBassAvg;
+      prevBassAvg = prevBassAvg * 0.85 + currentBassAvg * 0.15;
+
+      const beatThreshold = 0.28 / state.beatSens;
+      const beatKick = bassDelta > beatThreshold && bass > (0.9 / state.beatSens);
+      const beatIntensity = beatKick ? Math.min(2.5, (bassDelta / beatThreshold) * bass) : 0;
+
+      return {
+        subBass: rawSub * state.bassSens,
+        bass,
+        mid,
+        high,
+        level,
+        beatKick,
+        beatIntensity
+      };
+    }
+
+    // --- VISUAL MODES RENDERERS ---
+    function drawVisualizerMode(ctx, cx, cy, metrics) {
+      const mode = state.visualMode;
+      const binCount = analyser ? analyser.frequencyBinCount : 128;
+      const radius = state.innerRadius * (1 + metrics.bass * 0.18);
+      const scale = state.visScale;
+
+      ctx.save();
+
+      // MODE 1: CIRCULAR SPECTRUM (HERO NEON)
+      if (mode === 'circular-spectrum') {
+        const bars = 96;
+        const step = (Math.PI * 2) / bars;
+
+        // Outer Neon Glow Circles
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius * 0.95, 0, Math.PI * 2);
+        ctx.strokeStyle = state.secondaryColor;
+        ctx.lineWidth = 3;
+        ctx.shadowColor = state.secondaryColor;
+        ctx.shadowBlur = state.glow ? state.glowBlur : 0;
+        ctx.stroke();
+
+        for (let i = 0; i < bars; i++) {
+          const index = Math.floor((i < bars / 2 ? i : bars - i) * (binCount / bars));
+          const val = (dataArray ? dataArray[index] : 20) * scale;
+          const barLen = Math.max(6, (val / 255) * 175 * (1 + metrics.bass * 0.5));
+          const angle = i * step - Math.PI / 2;
+
+          const x1 = cx + Math.cos(angle) * radius;
+          const y1 = cy + Math.sin(angle) * radius;
+          const x2 = cx + Math.cos(angle) * (radius + barLen);
+          const y2 = cy + Math.sin(angle) * (radius + barLen);
+
+          const grad = ctx.createLinearGradient(x1, y1, x2, y2);
+          grad.addColorStop(0, state.primaryColor);
+          grad.addColorStop(0.7, state.secondaryColor);
+          grad.addColorStop(1, '#ffffff');
+
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = (Math.PI * 2 * radius / bars) * 0.65;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        }
+      }
+
+      // MODE 2: CIRCULAR EQUALIZER (DOT SEGMENTS)
+      else if (mode === 'circular-eq') {
+        const segments = 64;
+        const rings = 8;
+        const step = (Math.PI * 2) / segments;
+
+        for (let i = 0; i < segments; i++) {
+          const val = dataArray ? dataArray[i * 2] / 255 : 0.2;
+          const activeRings = Math.floor(val * rings * (1 + metrics.bass * 0.45));
+          const angle = i * step;
+
+          for (let r = 0; r < rings; r++) {
+            const dist = radius + r * 14;
+            const px = cx + Math.cos(angle) * dist;
+            const py = cy + Math.sin(angle) * dist;
+
+            ctx.beginPath();
+            ctx.arc(px, py, r < activeRings ? 3.5 : 1.5, 0, Math.PI * 2);
+            ctx.fillStyle = r < activeRings ? (r > 5 ? state.secondaryColor : state.primaryColor) : 'rgba(255,255,255,0.1)';
+            ctx.fill();
+          }
+        }
+      }
+
+      // MODE 3: RADIAL BARS
+      else if (mode === 'radial-bars') {
+        const bars = 120;
+        const step = (Math.PI * 2) / bars;
+        for (let i = 0; i < bars; i++) {
+          const val = (dataArray ? dataArray[i * 2] : 20) / 255;
+          const barLen = val * 230 * scale * (1 + metrics.bass * 0.35);
+          const angle = i * step;
+
+          ctx.strokeStyle = i % 2 === 0 ? state.primaryColor : state.accentColor;
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius);
+          ctx.lineTo(cx + Math.cos(angle) * (radius + barLen), cy + Math.sin(angle) * (radius + barLen));
+          ctx.stroke();
+        }
+      }
+
+      // MODE 4: FREQUENCY BARS (BOTTOM ALIGNED)
+      else if (mode === 'frequency-bars') {
+        const barW = 1920 / 64;
+        for (let i = 0; i < 64; i++) {
+          const val = dataArray ? dataArray[i * 4] / 255 : 0.1;
+          const barH = val * 470 * scale * (1 + metrics.bass * 0.4);
+          const x = i * barW;
+          const y = 1080 - barH;
+
+          const grad = ctx.createLinearGradient(0, y, 0, 1080);
+          grad.addColorStop(0, '#ffffff');
+          grad.addColorStop(0.2, state.secondaryColor);
+          grad.addColorStop(1, state.primaryColor);
+
+          ctx.fillStyle = grad;
+          ctx.fillRect(x + 2, y, barW - 4, barH);
+        }
+      }
+
+      // MODE 5: WAVEFORM RIBBON
+      else if (mode === 'waveform') {
+        ctx.beginPath();
+        ctx.lineWidth = 4 + metrics.bass * 3;
+        ctx.strokeStyle = state.primaryColor;
+        ctx.shadowColor = state.primaryColor;
+        ctx.shadowBlur = 20;
+
+        const sliceW = 1920 / binCount;
+        let x = 0;
+        for (let i = 0; i < binCount; i++) {
+          const v = timeArray ? timeArray[i] / 128.0 : 1.0;
+          const y = (v * 1080) / 2;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+          x += sliceW;
+        }
+        ctx.stroke();
+      }
+
+      // MODE 6: OSCILLOSCOPE (RADIAL LISSAJOUS)
+      else if (mode === 'oscilloscope') {
+        ctx.beginPath();
+        ctx.lineWidth = 3 + metrics.bass * 2;
+        ctx.strokeStyle = state.primaryColor;
+        ctx.shadowColor = state.primaryColor;
+        ctx.shadowBlur = 15;
+
+        for (let i = 0; i < binCount; i++) {
+          const v = (timeArray ? (timeArray[i] - 128) / 128 : 0) * 100 * scale * (1 + metrics.bass * 0.4);
+          const angle = (i / binCount) * Math.PI * 2;
+          const r = radius + v;
+          const px = cx + Math.cos(angle) * r;
+          const py = cy + Math.sin(angle) * r;
+
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      }
+
+      // MODE 7: NEON RESONANT RINGS
+      else if (mode === 'neon-rings') {
+        const numRings = 6;
+        for (let i = 0; i < numRings; i++) {
+          const r = radius + i * 35 + metrics.bass * (i * 24);
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.strokeStyle = i % 2 === 0 ? state.primaryColor : state.secondaryColor;
+          ctx.lineWidth = 2 + (numRings - i) * 1.0;
+          ctx.globalAlpha = Math.max(0.2, 1 - i * 0.15);
+          ctx.stroke();
+        }
+      }
+
+      // MODE 8: HYPERSPACE CYBER TUNNEL
+      else if (mode === 'tunnel') {
+        const sides = 6;
+        const rings = 10;
+        const time = performance.now() * 0.002;
+
+        for (let r = 0; r < rings; r++) {
+          const ringRad = ((r * 60 + time * (60 + metrics.bass * 40)) % 650) + 40;
+          ctx.beginPath();
+          for (let s = 0; s <= sides; s++) {
+            const angle = (s / sides) * Math.PI * 2 + (r * 0.1);
+            const px = cx + Math.cos(angle) * ringRad;
+            const py = cy + Math.sin(angle) * ringRad;
+            if (s === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.strokeStyle = r % 2 === 0 ? state.primaryColor : state.secondaryColor;
+          ctx.lineWidth = 2.5 + metrics.bass * 1.5;
+          ctx.stroke();
+        }
+      }
+
+      // MODE 9: MIRROR SPECTRUM
+      else if (mode === 'mirror-spectrum') {
+        const bars = 80;
+        const barW = 1920 / bars;
+        for (let i = 0; i < bars; i++) {
+          const idx = Math.floor(Math.abs(bars / 2 - i) * 2);
+          const val = dataArray ? dataArray[idx] / 255 : 0.15;
+          const h = val * 280 * scale * (1 + metrics.bass * 0.45);
+          const x = i * barW;
+
+          ctx.fillStyle = state.primaryColor;
+          ctx.fillRect(x, cy - h, barW - 3, h);
+          ctx.fillStyle = state.secondaryColor;
+          ctx.fillRect(x, cy, barW - 3, h);
+        }
+      }
+
+      // MODE 10: DUAL SPLIT SPECTRUM
+      else if (mode === 'dual-spectrum') {
+        const bars = 48;
+        for (let i = 0; i < bars; i++) {
+          const val = dataArray ? dataArray[i * 2] / 255 : 0.2;
+          const len = val * 200 * scale * (1 + metrics.bass * 0.3);
+          const angleL = Math.PI - (i / bars) * Math.PI;
+          const angleR = (i / bars) * Math.PI;
+
+          // Left Wing
+          ctx.strokeStyle = state.primaryColor;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(angleL) * radius, cy + Math.sin(angleL) * radius);
+          ctx.lineTo(cx + Math.cos(angleL) * (radius + len), cy + Math.sin(angleL) * (radius + len));
+          ctx.stroke();
+
+          // Right Wing
+          ctx.strokeStyle = state.secondaryColor;
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(angleR) * radius, cy + Math.sin(angleR) * radius);
+          ctx.lineTo(cx + Math.cos(angleR) * (radius + len), cy + Math.sin(angleR) * (radius + len));
+          ctx.stroke();
+        }
+      }
+
+      // MODE 11: GOLDEN SPIRAL SPECTRUM
+      else if (mode === 'spiral-spectrum') {
+        ctx.beginPath();
+        const loops = 400;
+        for (let i = 0; i < loops; i++) {
+          const val = dataArray ? dataArray[i % binCount] / 255 : 0.1;
+          const angle = 0.1 * i;
+          const r = (5 + angle * 12) + val * 80 * (1 + metrics.bass * 0.4);
+          const px = cx + Math.cos(angle) * r;
+          const py = cy + Math.sin(angle) * r;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.strokeStyle = state.primaryColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // MODE 12: PARTICLE MESH
+      else if (mode === 'particles-mesh') {
+        const nodes = 30;
+        const pts = [];
+        for (let i = 0; i < nodes; i++) {
+          const val = dataArray ? dataArray[i * 3] / 255 : 0.2;
+          const angle = (i / nodes) * Math.PI * 2;
+          const r = radius + val * 180 * (1 + metrics.bass * 0.4);
+          pts.push({ x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r });
+        }
+        ctx.strokeStyle = state.primaryColor;
+        ctx.fillStyle = state.secondaryColor;
+        ctx.lineWidth = 1;
+
+        for (let i = 0; i < nodes; i++) {
+          for (let j = i + 1; j < nodes; j++) {
+            const d = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
+            if (d < 190) {
+              ctx.globalAlpha = 1 - d / 190;
+              ctx.beginPath();
+              ctx.moveTo(pts[i].x, pts[i].y);
+              ctx.lineTo(pts[j].x, pts[j].y);
+              ctx.stroke();
+            }
+          }
+          ctx.globalAlpha = 1;
+          ctx.beginPath();
+          ctx.arc(pts[i].x, pts[i].y, 4 + metrics.bass * 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // MODE 13: GALAXY ORBITAL
+      else if (mode === 'galaxy') {
+        const arms = 3;
+        const starsPerArm = 50;
+        const time = performance.now() * 0.001;
+
+        for (let a = 0; a < arms; a++) {
+          for (let s = 0; s < starsPerArm; s++) {
+            const val = dataArray ? dataArray[(a * starsPerArm + s) % binCount] / 255 : 0.1;
+            const dist = s * 7 + radius * 0.5;
+            const angle = (a * ((Math.PI * 2) / arms)) + (s * 0.08) + time * (1 + metrics.bass * 0.5) + (val * 0.6);
+            const px = cx + Math.cos(angle) * dist;
+            const py = cy + Math.sin(angle) * dist;
+
+            ctx.fillStyle = s % 2 === 0 ? state.primaryColor : state.secondaryColor;
+            ctx.beginPath();
+            ctx.arc(px, py, 1.5 + val * 5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+
+      // MODE 14: 3D SYNTHWAVE GRID (Visualizer Mode focus)
+      else if (mode === 'synthwave-grid') {
+        const bars = 40;
+        for (let i = 0; i < bars; i++) {
+          const val = dataArray ? dataArray[i * 2] / 255 : 0.2;
+          const h = val * 260 * scale * (1 + metrics.bass * 0.5);
+          const x = cx + (i - bars / 2) * 28;
+          const y = cy + 100;
+
+          ctx.fillStyle = i % 2 === 0 ? state.primaryColor : state.secondaryColor;
+          ctx.fillRect(x, y - h, 20, h);
+        }
+      }
+
+      // MODE 15: 3D EQUALIZER PILLARS
+      else if (mode === '3d-eq') {
+        const cols = 24;
+        for (let i = 0; i < cols; i++) {
+          const val = dataArray ? dataArray[i * 3] / 255 : 0.2;
+          const h = val * 320 * scale * (1 + metrics.bass * 0.5);
+          const x = cx + (i - cols / 2) * 36;
+          const y = cy + 120;
+
+          // Front face
+          ctx.fillStyle = state.primaryColor;
+          ctx.fillRect(x, y - h, 24, h);
+          // Top Iso Face
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.moveTo(x, y - h);
+          ctx.lineTo(x + 10, y - h - 10);
+          ctx.lineTo(x + 34, y - h - 10);
+          ctx.lineTo(x + 24, y - h);
+          ctx.fill();
+        }
+      }
+
+      // MODE 16: ENERGY PULSE CORE
+      else if (mode === 'energy-pulse') {
+        const pulseR = radius * (1 + metrics.bass * 0.85);
+        const grad = ctx.createRadialGradient(cx, cy, 10, cx, cy, pulseR);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.3, state.primaryColor);
+        grad.addColorStop(0.8, state.secondaryColor);
+        grad.addColorStop(1, 'transparent');
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, pulseR, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // MODE 17: CYBERPUNK TACTICAL HUD
+      else if (mode === 'cyberpunk-hud') {
+        ctx.strokeStyle = state.primaryColor;
+        ctx.lineWidth = 3 + metrics.bass * 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius + 40 + metrics.bass * 15, -Math.PI * 0.3, Math.PI * 0.3);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius + 40 + metrics.bass * 15, Math.PI * 0.7, Math.PI * 1.3);
+        ctx.stroke();
+
+        ctx.strokeStyle = state.secondaryColor;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(cx - radius - 50, cy - 2, 25, 4);
+        ctx.strokeRect(cx + radius + 25, cy - 2, 25, 4);
+
+        ctx.font = '12px "Orbitron", monospace';
+        ctx.fillStyle = state.primaryColor;
+        ctx.fillText(`SYS.FREQ // ${(metrics.bass * 100).toFixed(1)}Hz`, cx - 80, cy - radius - 20);
+        ctx.fillText(`LOCK: [ACTIVE]`, cx - 50, cy + radius + 35);
+      }
+
+      // MODE 18: MINIMAL SPECTRUM
+      else if (mode === 'minimal-spectrum') {
+        ctx.strokeStyle = state.primaryColor;
+        ctx.lineWidth = 3 + metrics.bass * 2;
+        ctx.beginPath();
+        for (let i = 0; i < binCount; i++) {
+          const val = dataArray ? dataArray[i] / 255 : 0.1;
+          const angle = (i / binCount) * Math.PI * 2;
+          const r = radius + val * 100 * (1 + metrics.bass * 0.4);
+          const px = cx + Math.cos(angle) * r;
+          const py = cy + Math.sin(angle) * r;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    // --- CENTER ALBUM COVER ---
+    function drawCenterCover(ctx, cx, cy, bassNorm) {
+      if (!state.showCover) return;
+      const r = state.innerRadius * 0.82 * (state.coverPulse ? (1 + bassNorm * 0.12) : 1);
+
+      ctx.save();
+      ctx.beginPath();
+      if (state.coverShape === 'circle') {
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      } else if (state.coverShape === 'hexagon') {
+        for (let i = 0; i < 6; i++) {
+          const a = (i / 6) * Math.PI * 2;
+          const px = cx + Math.cos(a) * r;
+          const py = cy + Math.sin(a) * r;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+      } else {
+        // Square
+        ctx.rect(cx - r, cy - r, r * 2, r * 2);
+      }
+
+      ctx.clip();
+
+      if (state.coverImage) {
+        ctx.drawImage(state.coverImage, cx - r, cy - r, r * 2, r * 2);
+      } else {
+        // Default glowing gradient badge
+        const grad = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
+        grad.addColorStop(0, '#101424');
+        grad.addColorStop(0.5, '#1e0836');
+        grad.addColorStop(1, '#050a14');
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        ctx.fillStyle = state.primaryColor;
+        ctx.font = 'bold 36px "Orbitron", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('GV', cx, cy);
+      }
+
+      ctx.restore();
+
+      // Border glow ring
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, r + 2, 0, Math.PI * 2);
+      ctx.strokeStyle = state.primaryColor;
+      ctx.lineWidth = 3 + bassNorm * 2;
+      ctx.shadowColor = state.primaryColor;
+      ctx.shadowBlur = state.glow ? (15 + bassNorm * 10) : 0;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // --- OVERLAY TYPOGRAPHY & WATERMARK ---
+    function drawTypography(ctx, w, h, bassNorm) {
+      ctx.save();
+
+      // Track Title & Artist
+      if (state.showText) {
+        let tx = w / 2;
+        let ty = h * 0.88;
+
+        if (state.textPos === 'top-center') ty = h * 0.15;
+        else if (state.textPos === 'center') ty = h * 0.5;
+
+        ctx.textAlign = 'center';
+        ctx.font = `800 ${38 + bassNorm * 4}px "${state.textFont}", sans-serif`;
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = state.primaryColor;
+        ctx.shadowBlur = 15 + bassNorm * 10;
+        ctx.letterSpacing = '3px';
+        ctx.fillText(state.trackTitle, tx, ty);
+
+        ctx.font = `600 20px "${state.textFont}", sans-serif`;
+        ctx.fillStyle = state.primaryColor;
+        ctx.shadowBlur = 8;
+        ctx.fillText(state.trackArtist, tx, ty + 36);
+      }
+
+      // Watermark Branding
+      if (state.watermark) {
+        ctx.textAlign = 'right';
+        ctx.font = '600 14px "Orbitron", sans-serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.shadowBlur = 0;
+        ctx.fillText(state.watermarkText, w - 30, h - 30);
+      }
+
+      // Custom Floating Logo
+      if (state.logoImage) {
+        const lw = 120;
+        const lh = (state.logoImage.height / state.logoImage.width) * lw;
+        let lx = 40, ly = 40;
+
+        if (state.logoPos === 'top-right') { lx = w - lw - 40; ly = 40; }
+        else if (state.logoPos === 'bottom-left') { lx = 40; ly = h - lh - 40; }
+        else if (state.logoPos === 'bottom-right') { lx = w - lw - 40; ly = h - lh - 40; }
+        else if (state.logoPos === 'center-bottom') { lx = w / 2 - lw / 2; ly = h - lh - 60; }
+
+        ctx.globalAlpha = state.logoOpacity;
+        ctx.drawImage(state.logoImage, lx, ly, lw, lh);
+      }
+
+      ctx.restore();
+    }
+
+    // --- POST PROCESSING SHADERS & EFFECTS ---
+    function applyPostProcessing(ctx, w, h, beatKick) {
+      // Vignette
+      if (state.vignette) {
+        const vigGrad = ctx.createRadialGradient(w/2, h/2, w*0.3, w/2, h/2, w*0.75);
+        vigGrad.addColorStop(0, 'transparent');
+        vigGrad.addColorStop(1, 'rgba(0,0,0,0.75)');
+        ctx.fillStyle = vigGrad;
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      // CRT Scanlines
+      if (state.scanlines) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
+        for (let y = 0; y < h; y += 4) {
+          ctx.fillRect(0, y, w, 1.5);
+        }
+      }
+
+      // Film Grain Noise
+      if (state.filmGrain) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.025)';
+        for (let i = 0; i < 1800; i++) {
+          ctx.fillRect(Math.random() * w, Math.random() * h, 1.5, 1.5);
+        }
+      }
+
+      // Chromatic Glitch Shake on Heavy Beat
+      if (state.chromatic && beatKick) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+        ctx.drawImage(canvas, -6, 0, w, h);
+        ctx.drawImage(canvas, 6, 0, w, h);
+        ctx.restore();
+      }
+    }
+
+    // --- MAIN RENDER LOOP WITH SCREEN SHAKE MATRIX ---
+    let lastFrameTime = performance.now();
+    let frameCount = 0;
+
+    function renderFrame() {
+      const now = performance.now();
+      frameCount++;
+      if (now - lastFrameTime >= 1000) {
+        fpsCounter.textContent = `FPS: ${frameCount}`;
+        frameCount = 0;
+        lastFrameTime = now;
+      }
+
+      const w = canvas.width;
+      const h = canvas.height;
+      const metrics = getAudioMetrics();
+
+      // Screen Shake Calculation
+      if (state.enableScreenShake && (metrics.beatKick || metrics.bass > 1.1)) {
+        const shakePower = (metrics.beatIntensity + metrics.bass * 0.6) * (state.shakeIntensity / 10);
+        state.shakeDecay = shakePower;
+      }
+
+      if (state.shakeDecay > 0.05) {
+        state.shakeOffsetX = (Math.random() - 0.5) * state.shakeDecay * 1.5;
+        state.shakeOffsetY = (Math.random() - 0.5) * state.shakeDecay * 1.5;
+        state.shakeAngle = (Math.random() - 0.5) * (state.shakeDecay * 0.003);
+        state.shakeDecay *= 0.88; // smooth exponential decay
+      } else {
+        state.shakeOffsetX = 0;
+        state.shakeOffsetY = 0;
+        state.shakeAngle = 0;
+        state.shakeDecay = 0;
+      }
+
+      // Clear Canvas Buffer
+      ctx.save();
+      ctx.fillStyle = '#05060a';
+      ctx.fillRect(0, 0, w, h);
+
+      // APPLY SCREEN SHAKE TRANSFORM
+      ctx.translate(w / 2 + state.shakeOffsetX, h / 2 + state.shakeOffsetY);
+      ctx.rotate(state.shakeAngle);
+      ctx.translate(-w / 2, -h / 2);
+
+      const cx = w / 2;
+      const cy = h / 2;
+
+      // Render Dynamic Background Image
+      if (state.bgImage) {
+        ctx.save();
+        const zoom = state.bgZoom ? 1.0 + metrics.bass * 0.06 : 1.0;
+        const bw = w * zoom;
+        const bh = h * zoom;
+        ctx.filter = `blur(${state.bgBlur}px) brightness(${1 - state.bgDim / 100})`;
+        ctx.drawImage(state.bgImage, (w - bw) / 2, (h - bh) / 2, bw, bh);
+        ctx.restore();
+      }
+
+      // 3D Synthwave Horizon Grid
+      draw3DGrid(ctx, w, h, metrics.bass);
+
+      // Cosmic Particle System
+      particles.updateAndDraw(ctx, cx, cy, metrics.bass, metrics.beatKick);
+
+      // Visualizer Mode Core
+      drawVisualizerMode(ctx, cx, cy, metrics);
+
+      // Center Album Cover
+      drawCenterCover(ctx, cx, cy, metrics.bass);
+
+      // Typography & Watermark
+      drawTypography(ctx, w, h, metrics.bass);
+
+      // Post-Processing Filters (CRT, Vignette, Bloom)
+      applyPostProcessing(ctx, w, h, metrics.beatKick);
+
+      // Restore Screen Shake Transform
+      ctx.restore();
+
+      // Beat pulse border flash
+      if (metrics.beatKick) {
+        canvasContainer.classList.add('beat-pulse');
+      } else {
+        canvasContainer.classList.remove('beat-pulse');
+      }
+
+      // Update Audio Player Timeline
+      if (state.isPlaying && audioEl.duration) {
+        const cur = audioEl.currentTime;
+        const dur = audioEl.duration;
+        lblCurrentTime.textContent = formatTime(cur);
+        lblTotalDuration.textContent = formatTime(dur);
+        timelineProgress.style.width = `${(cur / dur) * 100}%`;
+      }
+
+      requestAnimationFrame(renderFrame);
+    }
+
+    // --- TIME FORMATTER HELPER ---
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return '00:00';
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    // --- AUDIO CONTROLLER LOGIC ---
+    function playAudio() {
+      initAudioContext();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      audioEl.play().then(() => {
+        state.isPlaying = true;
+        btnPlayPause.textContent = '⏸';
+      }).catch(err => {
+        showToast('Playback error: ' + err.message, '⚠️');
+      });
+    }
+
+    function pauseAudio() {
+      audioEl.pause();
+      state.isPlaying = false;
+      btnPlayPause.textContent = '▶';
+    }
+
+    function togglePlay() {
+      if (state.isPlaying) pauseAudio();
+      else playAudio();
+    }
+
+    function stopAudio() {
+      pauseAudio();
+      audioEl.currentTime = 0;
+      timelineProgress.style.width = '0%';
+      lblCurrentTime.textContent = '00:00';
+    }
+
+    // --- SYNTHWAVE DEMO SYNTHESIZER ---
+    function startDemoSynth() {
+      initAudioContext();
+      if (state.isSynthRunning) {
+        stopDemoSynth();
+        return;
+      }
+
+      stopAudio();
+      state.isSynthRunning = true;
+      document.getElementById('btnDemoMusic').style.borderColor = 'var(--secondary)';
+      showToast('Synthwave Synthesizer Activated', '⚡');
+
+      lblPlayerTitle.textContent = 'Synthwave Horizon (Live Synth)';
+      lblPlayerArtist.textContent = 'GrooveVortex Web Oscillator';
+
+      const osc = audioCtx.createOscillator();
+      const oscGain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(65, audioCtx.currentTime);
+
+      osc.connect(oscGain);
+      oscGain.connect(analyser);
+      osc.start();
+
+      let step = 0;
+      const notes = [65.41, 65.41, 77.78, 87.31, 98.00, 87.31, 77.78, 58.27];
+      state.synthInterval = setInterval(() => {
+        const freq = notes[step % notes.length];
+        osc.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.04);
+        step++;
+      }, 240);
+
+      state.demoOsc = osc;
+      state.demoGain = oscGain;
+      state.isPlaying = true;
+      btnPlayPause.textContent = '⏸';
+    }
+
+    function stopDemoSynth() {
+      if (!state.isSynthRunning) return;
+      state.isSynthRunning = false;
+      clearInterval(state.synthInterval);
+      if (state.demoOsc) {
+        state.demoOsc.stop();
+        state.demoOsc.disconnect();
+      }
+      document.getElementById('btnDemoMusic').style.borderColor = '';
+      state.isPlaying = false;
+      btnPlayPause.textContent = '▶';
+    }
+
+    // --- VIDEO EXPORT RECORDER (CANVAS + WEBAUDIO TO WEBM) ---
+    function startVideoExport() {
+      initAudioContext();
+      if (state.isRecording) {
+        stopVideoExport();
+        return;
+      }
+
+      const canvasStream = canvas.captureStream(60);
+      const audioStream = destStreamNode.stream;
+
+      const combinedStream = new MediaStream([
+        ...canvasStream.getVideoTracks(),
+        ...audioStream.getAudioTracks()
+      ]);
+
+      let mimeType = 'video/webm;codecs=vp9,opus';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'video/webm';
+      }
+
+      try {
+        state.mediaRecorder = new MediaRecorder(combinedStream, {
+          mimeType,
+          videoBitsPerSecond: 8000000
+        });
+      } catch (e) {
+        showToast('MediaRecorder not supported for this codec', '❌');
+        return;
+      }
+
+      state.recordedChunks = [];
+      state.mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) state.recordedChunks.push(e.data);
+      };
+
+      state.mediaRecorder.onstop = () => {
+        const blob = new Blob(state.recordedChunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `GrooveVortex_${state.trackTitle.replace(/\s+/g, '_')}_1080p.webm`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Video Export Complete! Downloading WebM...', '🎬');
+        document.getElementById('btnExportVideo').textContent = '🎬 Export Video';
+        document.getElementById('btnExportVideo').classList.remove('btn-danger');
+      };
+
+      state.mediaRecorder.start();
+      state.isRecording = true;
+      document.getElementById('btnExportVideo').textContent = '⏹ Stop & Save';
+      document.getElementById('btnExportVideo').classList.add('btn-danger');
+      showToast('Recording Visualizer + Audio stream...', '🔴');
+
+      if (!state.isPlaying) playAudio();
+    }
+
+    function stopVideoExport() {
+      if (!state.isRecording) return;
+      state.isRecording = false;
+      state.mediaRecorder.stop();
+    }
+
+    // --- PRESETS ENGINE ---
+    const presets = {
+      cyberpunk: {
+        visualMode: 'circular-spectrum',
+        primaryColor: '#00f0ff',
+        secondaryColor: '#ff007f',
+        accentColor: '#9d4edd',
+        gridColor: '#00f0ff',
+        grid3D: true,
+        glow: true,
+        chromatic: true,
+        scanlines: true,
+        textFont: 'Orbitron'
+      },
+      synthwave: {
+        visualMode: 'synthwave-grid',
+        primaryColor: '#ff7700',
+        secondaryColor: '#ff007f',
+        accentColor: '#ffe600',
+        gridColor: '#ff007f',
+        grid3D: true,
+        glow: true,
+        chromatic: true,
+        scanlines: true,
+        textFont: 'Orbitron'
+      },
+      matrix: {
+        visualMode: 'radial-bars',
+        primaryColor: '#00ff66',
+        secondaryColor: '#008833',
+        accentColor: '#33ffaa',
+        gridColor: '#00ff66',
+        grid3D: true,
+        glow: true,
+        chromatic: false,
+        scanlines: true,
+        textFont: 'Rajdhani'
+      },
+      rave: {
+        visualMode: 'neon-rings',
+        primaryColor: '#ff00ff',
+        secondaryColor: '#7700ff',
+        accentColor: '#00ffff',
+        gridColor: '#ff00ff',
+        grid3D: false,
+        glow: true,
+        chromatic: true,
+        scanlines: false,
+        textFont: 'Orbitron'
+      },
+      phonk: {
+        visualMode: 'cyberpunk-hud',
+        primaryColor: '#ffffff',
+        secondaryColor: '#ff2222',
+        accentColor: '#666666',
+        gridColor: '#ff2222',
+        grid3D: true,
+        glow: true,
+        chromatic: true,
+        scanlines: true,
+        textFont: 'Rajdhani'
+      },
+      techno: {
+        visualMode: 'oscilloscope',
+        primaryColor: '#00f0ff',
+        secondaryColor: '#0044ff',
+        accentColor: '#ffffff',
+        gridColor: '#002288',
+        grid3D: false,
+        glow: true,
+        chromatic: false,
+        scanlines: false,
+        textFont: 'Inter'
+      },
+      edm: {
+        visualMode: 'energy-pulse',
+        primaryColor: '#ffdd00',
+        secondaryColor: '#ff0055',
+        accentColor: '#00ffff',
+        gridColor: '#ff9900',
+        grid3D: true,
+        glow: true,
+        chromatic: true,
+        scanlines: false,
+        textFont: 'Orbitron'
+      },
+      galaxy: {
+        visualMode: 'galaxy',
+        primaryColor: '#9d4edd',
+        secondaryColor: '#00f0ff',
+        accentColor: '#ffffff',
+        gridColor: '#3c096c',
+        grid3D: false,
+        glow: true,
+        chromatic: true,
+        scanlines: false,
+        textFont: 'Orbitron'
+      },
+      minimal: {
+        visualMode: 'minimal-spectrum',
+        primaryColor: '#ffffff',
+        secondaryColor: '#888888',
+        accentColor: '#444444',
+        gridColor: '#222222',
+        grid3D: false,
+        glow: false,
+        chromatic: false,
+        scanlines: false,
+        textFont: 'Inter'
+      },
+      toxic: {
+        visualMode: 'tunnel',
+        primaryColor: '#a8ff00',
+        secondaryColor: '#00e5ff',
+        accentColor: '#ffff00',
+        gridColor: '#a8ff00',
+        grid3D: true,
+        glow: true,
+        chromatic: true,
+        scanlines: true,
+        textFont: 'Orbitron'
+      },
+      solar: {
+        visualMode: 'circular-eq',
+        primaryColor: '#ffaa00',
+        secondaryColor: '#ff2200',
+        accentColor: '#ffeeaa',
+        gridColor: '#ff5500',
+        grid3D: true,
+        glow: true,
+        chromatic: true,
+        scanlines: false,
+        textFont: 'Orbitron'
+      },
+      blood: {
+        visualMode: 'frequency-bars',
+        primaryColor: '#ff0d55',
+        secondaryColor: '#590019',
+        accentColor: '#ffffff',
+        gridColor: '#ff0d55',
+        grid3D: true,
+        glow: true,
+        chromatic: true,
+        scanlines: true,
+        textFont: 'Rajdhani'
+      }
+    };
+
+    function applyPreset(key) {
+      const p = presets[key];
+      if (!p) return;
+      Object.assign(state, p);
+
+      document.getElementById('selVisualMode').value = state.visualMode;
+      document.getElementById('colPrimary').value = state.primaryColor;
+      document.getElementById('colSecondary').value = state.secondaryColor;
+      document.getElementById('colAccent').value = state.accentColor;
+      document.getElementById('colGrid').value = state.gridColor;
+      document.getElementById('chkGrid3D').checked = state.grid3D;
+      document.getElementById('chkGlow').checked = state.glow;
+      document.getElementById('chkChromatic').checked = state.chromatic;
+      document.getElementById('chkScanlines').checked = state.scanlines;
+      document.getElementById('selTextFont').value = state.textFont;
+
+      showToast(`Applied preset: ${key.toUpperCase()}`, '✨');
+    }
+
+    // --- ASPECT RATIO HANDLER ---
+    function updateAspectRatio(ratio) {
+      state.aspectRatio = ratio;
+      const resPill = document.getElementById('resPill');
+      if (ratio === '16:9') {
+        canvas.width = 1920; canvas.height = 1080;
+        resPill.textContent = '1920 × 1080 (16:9)';
+      } else if (ratio === '9:16') {
+        canvas.width = 1080; canvas.height = 1920;
+        resPill.textContent = '1080 × 1920 (9:16 Shorts)';
+      } else if (ratio === '1:1') {
+        canvas.width = 1080; canvas.height = 1080;
+        resPill.textContent = '1080 × 1080 (1:1 Square)';
+      } else if (ratio === '4:3') {
+        canvas.width = 1440; canvas.height = 1080;
+        resPill.textContent = '1440 × 1080 (4:3 Retro)';
+      }
+      particles.reset();
+    }
+
+    // --- EVENT LISTENERS & UI WIRING ---
+    function bindEvents() {
+      // Panel Tabs Switching
+      document.querySelectorAll('.panel-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const panel = tab.closest('.panel');
+          panel.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+          panel.querySelectorAll('.panel-content').forEach(c => c.style.display = 'none');
+          tab.classList.add('active');
+          document.getElementById(tab.dataset.tab).style.display = 'flex';
+        });
+      });
+
+      // Transport Buttons
+      btnPlayPause.addEventListener('click', togglePlay);
+      btnStop.addEventListener('click', stopAudio);
+      btnLoop.addEventListener('click', () => {
+        state.isLooping = !state.isLooping;
+        audioEl.loop = state.isLooping;
+        btnLoop.style.color = state.isLooping ? 'var(--primary)' : '';
+        showToast(state.isLooping ? 'Looping enabled' : 'Looping disabled', '🔁');
+      });
+
+      btnMute.addEventListener('click', () => {
+        state.isMuted = !state.isMuted;
+        audioEl.muted = state.isMuted;
+        btnMute.textContent = state.isMuted ? '🔇' : '🔊';
+      });
+
+      rngVolume.addEventListener('input', (e) => {
+        state.volume = parseFloat(e.target.value);
+        if (gainNode) gainNode.gain.value = state.volume;
+        audioEl.volume = state.volume;
+      });
+
+      // Timeline Scrubber
+      timelineScrub.addEventListener('click', (e) => {
+        if (!audioEl.duration) return;
+        const rect = timelineScrub.getBoundingClientRect();
+        const pos = (e.clientX - rect.left) / rect.width;
+        audioEl.currentTime = pos * audioEl.duration;
+      });
+
+      // Audio File Loader
+      document.getElementById('audioFileInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        loadAudioFile(file);
+      });
+
+      // Background Image Loader
+      document.getElementById('bgFileInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => { state.bgImage = img; showToast('Background image loaded', '🖼️'); };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // Cover Image Loader
+      document.getElementById('coverFileInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+            state.coverImage = img;
+            miniThumb.style.backgroundImage = `url(${ev.target.result})`;
+            miniThumb.textContent = '';
+            showToast('Album cover loaded', '💿');
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // Logo File Loader
+      document.getElementById('logoFileInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => { state.logoImage = img; showToast('Logo loaded', '✨'); };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // UI Sliders & Selects
+      document.getElementById('selVisualMode').addEventListener('change', (e) => state.visualMode = e.target.value);
+      document.getElementById('selAspectRatio').addEventListener('change', (e) => updateAspectRatio(e.target.value));
+
+      // Screen Shake & Reactivity Event Listeners
+      document.getElementById('chkScreenShake').addEventListener('change', (e) => {
+        state.enableScreenShake = e.target.checked;
+        showToast(state.enableScreenShake ? 'Screen Shake Enabled' : 'Screen Shake Disabled', '📳');
+      });
+
+      document.getElementById('rngShakeIntensity').addEventListener('input', (e) => {
+        state.shakeIntensity = parseInt(e.target.value);
+        document.getElementById('lblShakeIntensity').textContent = `${state.shakeIntensity}px`;
+      });
+
+      document.getElementById('rngBeatSens').addEventListener('input', (e) => {
+        state.beatSens = parseFloat(e.target.value);
+        document.getElementById('lblBeatSens').textContent = `${state.beatSens.toFixed(1)}x`;
+      });
+
+      document.getElementById('rngBassSens').addEventListener('input', (e) => {
+        state.bassSens = parseFloat(e.target.value);
+        document.getElementById('lblBassSens').textContent = `${state.bassSens.toFixed(1)}x`;
+      });
+
+      document.getElementById('rngMidHighSens').addEventListener('input', (e) => {
+        state.midHighSens = parseFloat(e.target.value);
+        document.getElementById('lblMidHighSens').textContent = `${state.midHighSens.toFixed(1)}x`;
+      });
+
+      document.getElementById('rngVisScale').addEventListener('input', (e) => {
+        state.visScale = parseFloat(e.target.value);
+        document.getElementById('lblVisScale').textContent = `${state.visScale.toFixed(2)}x`;
+      });
+
+      document.getElementById('rngSmoothing').addEventListener('input', (e) => {
+        state.smoothing = parseFloat(e.target.value);
+        if (analyser) analyser.smoothingTimeConstant = state.smoothing;
+        document.getElementById('lblSmoothing').textContent = state.smoothing.toFixed(2);
+      });
+
+      document.getElementById('rngRadius').addEventListener('input', (e) => {
+        state.innerRadius = parseInt(e.target.value);
+        document.getElementById('lblRadius').textContent = `${state.innerRadius}px`;
+      });
+
+      // Grid Controls
+      document.getElementById('chkGrid3D').addEventListener('change', (e) => state.grid3D = e.target.checked);
+      document.getElementById('rngGridPitch').addEventListener('input', (e) => {
+        state.gridPitch = parseInt(e.target.value);
+        document.getElementById('lblGridPitch').textContent = `${state.gridPitch}°`;
+      });
+      document.getElementById('rngGridSpeed').addEventListener('input', (e) => {
+        state.gridSpeed = parseFloat(e.target.value);
+        document.getElementById('lblGridSpeed').textContent = `${state.gridSpeed.toFixed(1)}x`;
+      });
+
+      // Background Controls
+      document.getElementById('rngBgBlur').addEventListener('input', (e) => {
+        state.bgBlur = parseInt(e.target.value);
+        document.getElementById('lblBgBlur').textContent = `${state.bgBlur}px`;
+      });
+      document.getElementById('rngBgDim').addEventListener('input', (e) => {
+        state.bgDim = parseInt(e.target.value);
+        document.getElementById('lblBgDim').textContent = `${state.bgDim}%`;
+      });
+      document.getElementById('chkBgZoom').addEventListener('change', (e) => state.bgZoom = e.target.checked);
+
+      // Cover Controls
+      document.getElementById('chkShowCover').addEventListener('change', (e) => state.showCover = e.target.checked);
+      document.getElementById('selCoverShape').addEventListener('change', (e) => state.coverShape = e.target.value);
+      document.getElementById('chkCoverPulse').addEventListener('change', (e) => state.coverPulse = e.target.checked);
+
+      // Logo Controls
+      document.getElementById('selLogoPos').addEventListener('change', (e) => state.logoPos = e.target.value);
+      document.getElementById('rngLogoOpacity').addEventListener('input', (e) => {
+        state.logoOpacity = parseInt(e.target.value) / 100;
+        document.getElementById('lblLogoOpacity').textContent = `${e.target.value}%`;
+      });
+
+      // Colors
+      document.getElementById('colPrimary').addEventListener('input', (e) => state.primaryColor = e.target.value);
+      document.getElementById('colSecondary').addEventListener('input', (e) => state.secondaryColor = e.target.value);
+      document.getElementById('colAccent').addEventListener('input', (e) => state.accentColor = e.target.value);
+      document.getElementById('colGrid').addEventListener('input', (e) => state.gridColor = e.target.value);
+
+      // FX
+      document.getElementById('chkGlow').addEventListener('change', (e) => state.glow = e.target.checked);
+      document.getElementById('rngGlowBlur').addEventListener('input', (e) => {
+        state.glowBlur = parseInt(e.target.value);
+        document.getElementById('lblGlowBlur').textContent = `${state.glowBlur}px`;
+      });
+      document.getElementById('chkChromatic').addEventListener('change', (e) => state.chromatic = e.target.checked);
+      document.getElementById('chkScanlines').addEventListener('change', (e) => state.scanlines = e.target.checked);
+      document.getElementById('chkFilmGrain').addEventListener('change', (e) => state.filmGrain = e.target.checked);
+      document.getElementById('chkVignette').addEventListener('change', (e) => state.vignette = e.target.checked);
+
+      // Text
+      document.getElementById('chkShowText').addEventListener('change', (e) => state.showText = e.target.checked);
+      document.getElementById('txtTrackTitle').addEventListener('input', (e) => {
+        state.trackTitle = e.target.value;
+        lblPlayerTitle.textContent = e.target.value || 'Untitled Track';
+      });
+      document.getElementById('txtTrackArtist').addEventListener('input', (e) => {
+        state.trackArtist = e.target.value;
+        lblPlayerArtist.textContent = e.target.value || 'Unknown Artist';
+      });
+      document.getElementById('selTextFont').addEventListener('change', (e) => state.textFont = e.target.value);
+      document.getElementById('selTextPos').addEventListener('change', (e) => state.textPos = e.target.value);
+      document.getElementById('chkWatermark').addEventListener('change', (e) => state.watermark = e.target.checked);
+      document.getElementById('txtWatermark').addEventListener('input', (e) => state.watermarkText = e.target.value);
+
+      // Particles
+      document.getElementById('chkParticles').addEventListener('change', (e) => state.particles = e.target.checked);
+      document.getElementById('rngPartCount').addEventListener('input', (e) => {
+        state.particleCount = parseInt(e.target.value);
+        document.getElementById('lblPartCount').textContent = state.particleCount;
+      });
+      document.getElementById('rngPartSpeed').addEventListener('input', (e) => {
+        state.particleSpeed = parseFloat(e.target.value);
+        document.getElementById('lblPartSpeed').textContent = `${state.particleSpeed.toFixed(1)}x`;
+      });
+      document.getElementById('selPartDir').addEventListener('change', (e) => state.particleDir = e.target.value);
+
+      // Presets Buttons
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+      });
+
+      // Actions
+      document.getElementById('btnDemoMusic').addEventListener('click', startDemoSynth);
+      document.getElementById('btnExportVideo').addEventListener('click', startVideoExport);
+      document.getElementById('btnToggleFullscreen').addEventListener('click', toggleFullscreenPreview);
+      document.getElementById('btnFitScreen').addEventListener('click', () => {
+        canvas.style.transform = 'scale(1)';
+        showToast('Viewport Zoom Reset', '🔍');
+      });
+
+      document.getElementById('btnSaveProject').addEventListener('click', () => {
+        localStorage.setItem('grooveVortex_config', JSON.stringify({
+          visualMode: state.visualMode,
+          primaryColor: state.primaryColor,
+          secondaryColor: state.secondaryColor,
+          accentColor: state.accentColor,
+          trackTitle: state.trackTitle,
+          trackArtist: state.trackArtist,
+          shakeIntensity: state.shakeIntensity,
+          enableScreenShake: state.enableScreenShake
+        }));
+        showToast('Project configuration saved locally', '💾');
+      });
+
+      // Drag and Drop files over window
+      window.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropOverlay.classList.add('active');
+      });
+      window.addEventListener('dragleave', (e) => {
+        if (e.relatedTarget === null) dropOverlay.classList.remove('active');
+      });
+      window.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropOverlay.classList.remove('active');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          const file = e.dataTransfer.files[0];
+          if (file.type.startsWith('audio/')) loadAudioFile(file);
+          else if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              const img = new Image();
+              img.onload = () => { state.bgImage = img; showToast('Image set as Background', '🖼️'); };
+              img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+          }
+        }
+      });
+
+      // Keyboard Shortcuts
+      window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+        if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+        else if (e.key === 'f' || e.key === 'F') toggleFullscreenPreview();
+        else if (e.key === 'm' || e.key === 'M') btnMute.click();
+        else if (e.key === 'e' || e.key === 'E') startVideoExport();
+        else if (e.key === 'r' || e.key === 'R') stopAudio();
+      });
+    }
+
+    function loadAudioFile(file) {
+      stopDemoSynth();
+      const url = URL.createObjectURL(file);
+      audioEl.src = url;
+
+      const title = file.name.replace(/\.[^/.]+$/, "");
+      state.trackTitle = title.toUpperCase();
+      document.getElementById('txtTrackTitle').value = state.trackTitle;
+      lblPlayerTitle.textContent = title;
+      lblPlayerArtist.textContent = 'Local File';
+
+      showToast(`Loaded audio: ${file.name}`, '🎵');
+      playAudio();
+    }
+
+    function toggleFullscreenPreview() {
+      document.body.classList.toggle('fullscreen-mode');
+      if (document.body.classList.contains('fullscreen-mode')) {
+        showToast('Fullscreen Preview Mode (Press F to exit)', '⛶');
+      }
+    }
+
+    // --- INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      bindEvents();
+      particles.reset();
+      renderFrame();
+      showToast('GrooveVortex Visualizer Studio Ready', '⚡');
+    });
+  </script>
+</body>
+</html>
